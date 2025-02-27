@@ -850,3 +850,35 @@ html {
     flex-shrink: 0;
     white-space: nowrap;
 }
+
+.pattern-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 300px;
+}
+
+.pattern-controls select {
+    min-width: 120px;
+    flex: 1;
+}
+
+.generate-btn {
+    background-color: #00aa00;
+    color: white;
+    transition: background-color 0.2s;
+}
+
+.generate-btn:hover {
+    background-color: #00cc00;
+}
+
+.clear-btn {
+    background-color: #666;
+    color: white;
+    transition: background-color 0.2s;
+}
+
+.clear-btn:hover {
+    background-color: #888;
+}

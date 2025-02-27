@@ -554,4 +554,371 @@ class Sequencer {
         const stepDuration = (60 / this.settings.tempo) * (4 / this.settings.division) * 1000;
         return stepDuration * this.settings.gateLength;
     }
+
+    generatePattern(type) {
+        // Stop if playing
+        const wasPlaying = this.isPlaying;
+        if (wasPlaying) {
+            this.stop();
+        }
+
+        switch (type) {
+            case 'random':
+                this.generateRandomMelody();
+                break;
+            case 'arpeggio':
+                this.generateArpeggio();
+                break;
+            case 'scale':
+                this.generateScale();
+                break;
+            case 'chord':
+                this.generateChordProgression();
+                break;
+        }
+
+        // Update all steps visually
+        for (let step = 0; step < this.settings.steps; step++) {
+            this.updateStepDisplay(step);
+        }
+
+        // Restart if was playing
+        if (wasPlaying) {
+            this.start();
+        }
+    }
+
+    clearPattern() {
+        // Stop if playing
+        const wasPlaying = this.isPlaying;
+        if (wasPlaying) {
+            this.stop();
+        }
+
+        // Clear all steps
+        this.sequence = Array(this.settings.steps).fill().map(() => ({
+            active: false,
+            velocity: 0.7,
+            note: 'C',
+            octave: 4
+        }));
+
+        // Update all steps visually
+        for (let step = 0; step < this.settings.steps; step++) {
+            this.updateStepDisplay(step);
+        }
+
+        // Restart if was playing
+        if (wasPlaying) {
+            this.start();
+        }
+    }
+
+    generateRandomMelody() {
+        const scales = {
+            major: ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
+            minor: ['C', 'D', 'Eb', 'F', 'G', 'Ab', 'Bb'],
+            pentatonic: ['C', 'D', 'F', 'G', 'A']
+        };
+        
+        // Choose a random scale
+        const scaleType = Object.keys(scales)[Math.floor(Math.random() * Object.keys(scales).length)];
+        const scale = scales[scaleType];
+        
+        // Base octave range
+        const baseOctave = 4;
+        
+        for (let step = 0; step < this.settings.steps; step++) {
+            // 70% chance for a note to be active
+            if (Math.random() < 0.7) {
+                const noteIndex = Math.floor(Math.random() * scale.length);
+                const octaveOffset = Math.floor(Math.random() * 2) - 1; // -1, 0, or 1
+                
+                this.sequence[step] = {
+                    active: true,
+                    note: scale[noteIndex],
+                    octave: baseOctave + octaveOffset,
+                    velocity: 0.5 + Math.random() * 0.5 // Random velocity between 0.5 and 1
+                };
+            } else {
+                this.sequence[step].active = false;
+            }
+        }
+    }
+
+    generateArpeggio() {
+        const chords = {
+            'Cmaj': ['C', 'E', 'G'],
+            'Cmin': ['C', 'Eb', 'G'],
+            'Fmaj': ['F', 'A', 'C'],
+            'Fmin': ['F', 'Ab', 'C'],
+            'Gmaj': ['G', 'B', 'D'],
+            'Gmin': ['G', 'Bb', 'D'],
+            'Amin': ['A', 'C', 'E'],
+            'Amaj': ['A', 'C#', 'E'],
+            'Dmin': ['D', 'F', 'A'],
+            'Dmaj': ['D', 'F#', 'A'],
+            'Emin': ['E', 'G', 'B'],
+            'Emaj': ['E', 'G#', 'B']
+        };
+        
+        // Choose random pattern type
+        const patterns = [
+            'up', 'down', 'upDown', 'downUp', 'random', 'insideOut', 'outsideIn'
+        ];
+        const pattern = patterns[Math.floor(Math.random() * patterns.length)];
+        
+        // Choose two random chords
+        const chordNames = Object.keys(chords);
+        const chord1 = chords[chordNames[Math.floor(Math.random() * chordNames.length)]];
+        const chord2 = chords[chordNames[Math.floor(Math.random() * chordNames.length)]];
+        
+        // Random base octave (3 or 4)
+        const baseOctave = Math.random() < 0.5 ? 3 : 4;
+        
+        // Random rhythm pattern (which steps to activate)
+        const rhythmPatterns = [
+            [1, 1, 1, 1], // All steps
+            [1, 0, 1, 0], // Every other step
+            [1, 0, 0, 1], // First and last
+            [1, 1, 0, 1]  // Skip third
+        ];
+        const rhythm = rhythmPatterns[Math.floor(Math.random() * rhythmPatterns.length)];
+        
+        let noteSequence = [];
+        const currentChord = step => step < this.settings.steps / 2 ? chord1 : chord2;
+        
+        // Generate note sequence based on pattern
+        switch (pattern) {
+            case 'up':
+                noteSequence = currentChord(0);
+                break;
+            case 'down':
+                noteSequence = [...currentChord(0)].reverse();
+                break;
+            case 'upDown':
+                noteSequence = [...currentChord(0), ...currentChord(0).slice(1, -1).reverse()];
+                break;
+            case 'downUp':
+                noteSequence = [...currentChord(0).reverse(), ...currentChord(0).slice(1, -1)];
+                break;
+            case 'insideOut':
+                noteSequence = [currentChord(0)[1], currentChord(0)[0], currentChord(0)[2]];
+                break;
+            case 'outsideIn':
+                noteSequence = [currentChord(0)[0], currentChord(0)[2], currentChord(0)[1]];
+                break;
+            case 'random':
+                noteSequence = currentChord(0).sort(() => Math.random() - 0.5);
+                break;
+        }
+        
+        let seqIndex = 0;
+        for (let step = 0; step < this.settings.steps; step++) {
+            const currentChordNotes = step < this.settings.steps / 2 ? chord1 : chord2;
+            const rhythmIndex = step % rhythm.length;
+            
+            if (rhythm[rhythmIndex]) {
+                const note = noteSequence[seqIndex % noteSequence.length];
+                seqIndex++;
+                
+                this.sequence[step] = {
+                    active: true,
+                    note: note,
+                    octave: baseOctave + (seqIndex % 2), // Alternate between octaves
+                    velocity: 0.7 + (Math.random() * 0.3) // Add velocity variation
+                };
+            } else {
+                this.sequence[step].active = false;
+            }
+        }
+    }
+
+    generateScale() {
+        const scales = {
+            'C major': ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
+            'C minor': ['C', 'D', 'Eb', 'F', 'G', 'Ab', 'Bb'],
+            'G major': ['G', 'A', 'B', 'C', 'D', 'E', 'F#'],
+            'E minor': ['E', 'F#', 'G', 'A', 'B', 'C', 'D'],
+            'F major': ['F', 'G', 'A', 'Bb', 'C', 'D', 'E'],
+            'D minor': ['D', 'E', 'F', 'G', 'A', 'Bb', 'C'],
+            'A minor': ['A', 'B', 'C', 'D', 'E', 'F', 'G'],
+            'Chromatic': ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+        };
+        
+        // Choose random scale and pattern
+        const scaleNames = Object.keys(scales);
+        const selectedScale = scales[scaleNames[Math.floor(Math.random() * scaleNames.length)]];
+        const patterns = ['up', 'down', 'upDown', 'skipStep', 'random'];
+        const pattern = patterns[Math.floor(Math.random() * patterns.length)];
+        
+        // Random base octave and range
+        const baseOctave = Math.random() < 0.5 ? 3 : 4;
+        const octaveRange = Math.floor(Math.random() * 2) + 1; // 1 or 2 octaves
+        
+        let noteIndex = 0;
+        let direction = 1;
+        
+        // Generate rhythm pattern
+        const gateChance = 0.7 + (Math.random() * 0.3); // 70-100% chance for notes
+        
+        for (let step = 0; step < this.settings.steps; step++) {
+            if (Math.random() < gateChance) {
+                let currentNote;
+                switch (pattern) {
+                    case 'up':
+                        currentNote = noteIndex % selectedScale.length;
+                        noteIndex++;
+                        break;
+                    case 'down':
+                        currentNote = (selectedScale.length - 1) - (noteIndex % selectedScale.length);
+                        noteIndex++;
+                        break;
+                    case 'upDown':
+                        currentNote = noteIndex % (selectedScale.length * 2);
+                        if (currentNote >= selectedScale.length) {
+                            currentNote = selectedScale.length - (currentNote % selectedScale.length) - 1;
+                        }
+                        noteIndex++;
+                        break;
+                    case 'skipStep':
+                        currentNote = (noteIndex * 2) % selectedScale.length;
+                        noteIndex++;
+                        break;
+                    case 'random':
+                        currentNote = Math.floor(Math.random() * selectedScale.length);
+                        break;
+                }
+
+                const octaveOffset = Math.floor(noteIndex / selectedScale.length) % octaveRange;
+                
+                this.sequence[step] = {
+                    active: true,
+                    note: selectedScale[currentNote],
+                    octave: baseOctave + octaveOffset,
+                    velocity: 0.6 + (Math.random() * 0.4)
+                };
+            } else {
+                this.sequence[step].active = false;
+            }
+        }
+    }
+
+    generateChordProgression() {
+        const chordProgressions = [
+            // Common progressions in C
+            [
+                { root: 'C', type: 'maj', notes: ['C', 'E', 'G'] },
+                { root: 'F', type: 'maj', notes: ['F', 'A', 'C'] },
+                { root: 'G', type: 'maj', notes: ['G', 'B', 'D'] },
+                { root: 'C', type: 'maj', notes: ['C', 'E', 'G'] }
+            ],
+            // I-vi-IV-V
+            [
+                { root: 'C', type: 'maj', notes: ['C', 'E', 'G'] },
+                { root: 'A', type: 'min', notes: ['A', 'C', 'E'] },
+                { root: 'F', type: 'maj', notes: ['F', 'A', 'C'] },
+                { root: 'G', type: 'maj', notes: ['G', 'B', 'D'] }
+            ],
+            // vi-IV-I-V
+            [
+                { root: 'A', type: 'min', notes: ['A', 'C', 'E'] },
+                { root: 'F', type: 'maj', notes: ['F', 'A', 'C'] },
+                { root: 'C', type: 'maj', notes: ['C', 'E', 'G'] },
+                { root: 'G', type: 'maj', notes: ['G', 'B', 'D'] }
+            ],
+            // I-V-vi-IV
+            [
+                { root: 'C', type: 'maj', notes: ['C', 'E', 'G'] },
+                { root: 'G', type: 'maj', notes: ['G', 'B', 'D'] },
+                { root: 'A', type: 'min', notes: ['A', 'C', 'E'] },
+                { root: 'F', type: 'maj', notes: ['F', 'A', 'C'] }
+            ]
+        ];
+        
+        // Choose random progression and pattern
+        const progression = chordProgressions[Math.floor(Math.random() * chordProgressions.length)];
+        const patterns = ['block', 'arpUp', 'arpDown', 'alternate'];
+        const pattern = patterns[Math.floor(Math.random() * patterns.length)];
+        
+        const stepsPerChord = Math.floor(this.settings.steps / progression.length);
+        const baseOctave = Math.random() < 0.5 ? 3 : 4;
+        
+        for (let chordIndex = 0; chordIndex < progression.length; chordIndex++) {
+            const chord = progression[chordIndex];
+            const startStep = chordIndex * stepsPerChord;
+            
+            switch (pattern) {
+                case 'block':
+                    // Play all notes at once
+                    for (let noteIndex = 0; noteIndex < chord.notes.length; noteIndex++) {
+                        const step = startStep + noteIndex;
+                        if (step < this.settings.steps) {
+                            this.sequence[step] = {
+                                active: true,
+                                note: chord.notes[noteIndex],
+                                octave: baseOctave + (noteIndex === chord.notes.length - 1 ? 1 : 0),
+                                velocity: noteIndex === 0 ? 0.9 : 0.7
+                            };
+                        }
+                    }
+                    break;
+                    
+                case 'arpUp':
+                    // Arpeggiate up
+                    for (let i = 0; i < stepsPerChord; i++) {
+                        const step = startStep + i;
+                        if (step < this.settings.steps) {
+                            const noteIndex = i % chord.notes.length;
+                            this.sequence[step] = {
+                                active: true,
+                                note: chord.notes[noteIndex],
+                                octave: baseOctave + (noteIndex === chord.notes.length - 1 ? 1 : 0),
+                                velocity: 0.7 + (Math.random() * 0.3)
+                            };
+                        }
+                    }
+                    break;
+                    
+                case 'arpDown':
+                    // Arpeggiate down
+                    for (let i = 0; i < stepsPerChord; i++) {
+                        const step = startStep + i;
+                        if (step < this.settings.steps) {
+                            const noteIndex = (chord.notes.length - 1) - (i % chord.notes.length);
+                            this.sequence[step] = {
+                                active: true,
+                                note: chord.notes[noteIndex],
+                                octave: baseOctave + (noteIndex === 0 ? 1 : 0),
+                                velocity: 0.7 + (Math.random() * 0.3)
+                            };
+                        }
+                    }
+                    break;
+                    
+                case 'alternate':
+                    // Alternate between root and other notes
+                    for (let i = 0; i < stepsPerChord; i++) {
+                        const step = startStep + i;
+                        if (step < this.settings.steps) {
+                            const noteIndex = i % 2 === 0 ? 0 : (1 + Math.floor(Math.random() * (chord.notes.length - 1)));
+                            this.sequence[step] = {
+                                active: true,
+                                note: chord.notes[noteIndex],
+                                octave: baseOctave + (Math.random() < 0.3 ? 1 : 0),
+                                velocity: noteIndex === 0 ? 0.9 : 0.7
+                            };
+                        }
+                    }
+                    break;
+            }
+            
+            // Add some rests randomly
+            for (let step = startStep; step < startStep + stepsPerChord && step < this.settings.steps; step++) {
+                if (Math.random() < 0.2) { // 20% chance for rest
+                    this.sequence[step].active = false;
+                }
+            }
+        }
+    }
 } 

@@ -362,6 +362,16 @@
                             <option value="64" selected>64 Steps</option>
                         </select>
                     </div>
+                    <div class="pattern-controls">
+                        <select id="pattern-type">
+                            <option value="random">Random Melody</option>
+                            <option value="arpeggio">Arpeggio</option>
+                            <option value="scale">Scale Run</option>
+                            <option value="chord">Chord Progression</option>
+                        </select>
+                        <button onclick="synth.sequencer.generatePattern(document.getElementById('pattern-type').value)" class="generate-btn">Generate</button>
+                        <button onclick="synth.sequencer.clearPattern()" class="clear-btn">Clear</button>
+                    </div>
                 </div>
             </div>
             <div class="sequencer-grid">
