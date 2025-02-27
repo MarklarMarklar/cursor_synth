@@ -617,7 +617,7 @@ class Sequencer {
     generateRandomMelody() {
         const scales = {
             major: ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
-            minor: ['C', 'D', 'Eb', 'F', 'G', 'Ab', 'Bb'],
+            minor: ['C', 'D', 'D#', 'F', 'G', 'G#', 'A#'],
             pentatonic: ['C', 'D', 'F', 'G', 'A']
         };
         
@@ -649,11 +649,11 @@ class Sequencer {
     generateArpeggio() {
         const chords = {
             'Cmaj': ['C', 'E', 'G'],
-            'Cmin': ['C', 'Eb', 'G'],
+            'Cmin': ['C', 'D#', 'G'],     // Changed from Eb
             'Fmaj': ['F', 'A', 'C'],
-            'Fmin': ['F', 'Ab', 'C'],
+            'Fmin': ['F', 'G#', 'C'],     // Changed from Ab
             'Gmaj': ['G', 'B', 'D'],
-            'Gmin': ['G', 'Bb', 'D'],
+            'Gmin': ['G', 'A#', 'D'],     // Changed from Bb
             'Amin': ['A', 'C', 'E'],
             'Amaj': ['A', 'C#', 'E'],
             'Dmin': ['D', 'F', 'A'],
@@ -737,11 +737,11 @@ class Sequencer {
     generateScale() {
         const scales = {
             'C major': ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
-            'C minor': ['C', 'D', 'Eb', 'F', 'G', 'Ab', 'Bb'],
+            'C minor': ['C', 'D', 'D#', 'F', 'G', 'G#', 'A#'],
             'G major': ['G', 'A', 'B', 'C', 'D', 'E', 'F#'],
             'E minor': ['E', 'F#', 'G', 'A', 'B', 'C', 'D'],
-            'F major': ['F', 'G', 'A', 'Bb', 'C', 'D', 'E'],
-            'D minor': ['D', 'E', 'F', 'G', 'A', 'Bb', 'C'],
+            'F major': ['F', 'G', 'A', 'A#', 'C', 'D', 'E'],
+            'D minor': ['D', 'E', 'F', 'G', 'A', 'A#', 'C'],
             'A minor': ['A', 'B', 'C', 'D', 'E', 'F', 'G'],
             'Chromatic': ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
         };
