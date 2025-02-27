@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1a1a1a">
+    <title>Virtual Analog Synthesizer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+</head>
+<body>
+    <div id="synth-container">
+        <h1>Virtual Analog Synthesizer</h1>
+        
+        <div id="controls">
+            <!-- Left panel: Main synth controls -->
+            <div class="control-panel synth-controls">
+                <h2>Synth</h2>
+                <div class="control-row">
+                    <div class="control-group">
+                        <label>Waveform</label>
+                        <select id="waveform-select" onchange="synth.setWaveform(this.value)">
+                            <option value="sine">Sine</option>
+                            <option value="square">Square</option>
+                            <option value="triangle">Triangle</option>
+                            <option value="sawtooth">Sawtooth</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Volume</label>
+                        <input type="range" min="0" max="1" step="0.01" value="0.5"
+                               oninput="synth.setAmplitude(this.value)">
+                    </div>
+
+                    <div class="control-group">
+                        <label>Octave</label>
+                        <div class="octave-controls">
+                            <button onclick="synth.setOctave(synth.settings.octave - 1)">-</button>
+                            <span id="octave-display">4</span>
+                            <button onclick="synth.setOctave(synth.settings.octave + 1)">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group adsr-controls">
+                    <label>ADSR Envelope</label>
+                    <div class="adsr-sliders">
+                        <div>
+                            <label>A</label>
+                            <input type="range" min="0" max="2" step="0.01" value="0.1" 
+                                   class="adsr-slider" onchange="synth.updateADSR()">
+                        </div>
+                        <div>
+                            <label>D</label>
+                            <input type="range" min="0" max="2" step="0.01" value="0.1" 
+                                   class="adsr-slider" onchange="synth.updateADSR()">
+                        </div>
+                        <div>
+                            <label>S</label>
+                            <input type="range" min="0" max="1" step="0.01" value="0.7" 
+                                   class="adsr-slider" onchange="synth.updateADSR()">
+                        </div>
+                        <div>
+                            <label>R</label>
+                            <input type="range" min="0" max="2" step="0.01" value="0.2" 
+                                   class="adsr-slider" onchange="synth.updateADSR()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LFO Controls -->
+                <div class="control-group lfo-controls">
+                    <label>LFOs</label>
+                    <div class="lfo-settings">
+                        <div class="lfo-section">
+                            <div class="lfo-header">
+                                <h3>LFO 1</h3>
+                                <button class="lfo-toggle" id="lfo1-toggle" onclick="synth.toggleLFO(0)">LFO Off</button>
+                            </div>
+                            <div class="lfo-params">
+                                <div>
+                                    <label>Wave</label>
+                                    <select onchange="synth.setLfoWaveform(0, this.value)">
+                                        <option value="sine">Sine</option>
+                                        <option value="triangle">Triangle</option>
+                                        <option value="square">Square</option>
+                                        <option value="sawtooth">Saw</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label>Rate</label>
+                                    <div class="lfo-rate-control">
+                                        <select id="lfo1-sync" onchange="synth.setLfoSync(0, this.value)">
+                                            <option value="free">Free</option>
+                                            <option value="1/1">1 Bar</option>
+                                            <option value="1/2">1/2</option>
+                                            <option value="1/4">1/4</option>
+                                            <option value="1/8">1/8</option>
+                                            <option value="1/16">1/16</option>
+                                            <option value="1/32">1/32</option>
+                                            <option value="1/1t">1t</option>
+                                            <option value="1/2t">1/2t</option>
+                                            <option value="1/4t">1/4t</option>
+                                            <option value="1/8t">1/8t</option>
+                                            <option value="1/16t">1/16t</option>
+                                        </select>
+                                        <input type="range" min="0.1" max="20" step="0.1" value="1" 
+                                               class="lfo-slider" oninput="synth.setLfoRate(0, this.value); this.nextElementSibling.textContent = this.value + ' Hz'">
+                                        <span class="value-display">1 Hz</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label>Depth</label>
+                                    <input type="range" min="0" max="1" step="0.01" value="0.5" 
+                                           class="lfo-slider" oninput="synth.setLfoDepth(0, this.value); this.nextElementSibling.textContent = Math.round(this.value * 100) + '%'">
+                                    <span class="value-display">50%</span>
+                                </div>
+                                <div>
+                                    <label>Target</label>
+                                    <select onchange="synth.setLfoDestination(0, this.value)">
+                                        <option value="none">None</option>
+                                        <option value="filter">Filter</option>
+                                        <option value="amplitude">Amp</option>
+                                        <option value="oscillator">Pitch</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="lfo-section">
+                            <div class="lfo-header">
+                                <h3>LFO 2</h3>
+                                <button class="lfo-toggle" id="lfo2-toggle" onclick="synth.toggleLFO(1)">LFO Off</button>
+                            </div>
+                            <div class="lfo-params">
+                                <div>
+                                    <label>Wave</label>
+                                    <select onchange="synth.setLfoWaveform(1, this.value)">
+                                        <option value="sine">Sine</option>
+                                        <option value="triangle">Triangle</option>
+                                        <option value="square">Square</option>
+                                        <option value="sawtooth">Saw</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label>Rate</label>
+                                    <div class="lfo-rate-control">
+                                        <select id="lfo2-sync" onchange="synth.setLfoSync(1, this.value)">
+                                            <option value="free">Free</option>
+                                            <option value="1/1">1 Bar</option>
+                                            <option value="1/2">1/2</option>
+                                            <option value="1/4">1/4</option>
+                                            <option value="1/8">1/8</option>
+                                            <option value="1/16">1/16</option>
+                                            <option value="1/32">1/32</option>
+                                            <option value="1/1t">1t</option>
+                                            <option value="1/2t">1/2t</option>
+                                            <option value="1/4t">1/4t</option>
+                                            <option value="1/8t">1/8t</option>
+                                            <option value="1/16t">1/16t</option>
+                                        </select>
+                                        <input type="range" min="0.1" max="20" step="0.1" value="1" 
+                                               class="lfo-slider" oninput="synth.setLfoRate(1, this.value); this.nextElementSibling.textContent = this.value + ' Hz'">
+                                        <span class="value-display">1 Hz</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label>Depth</label>
+                                    <input type="range" min="0" max="1" step="0.01" value="0.5" 
+                                           class="lfo-slider" oninput="synth.setLfoDepth(1, this.value); this.nextElementSibling.textContent = Math.round(this.value * 100) + '%'">
+                                    <span class="value-display">50%</span>
+                                </div>
+                                <div>
+                                    <label>Target</label>
+                                    <select onchange="synth.setLfoDestination(1, this.value)">
+                                        <option value="none">None</option>
+                                        <option value="filter">Filter</option>
+                                        <option value="amplitude">Amp</option>
+                                        <option value="oscillator">Pitch</option>
+                                        <option value="lfo1-rate">LFO 1 Rate</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Middle panel: Filter and Effects -->
+            <div class="control-panel effects-panel">
+                <h2>Filter & Effects</h2>
+                <div class="filter-section">
+                    <h3>Filter</h3>
+                    <div class="filter-controls">
+                        <div class="filter-type">
+                            <label>Type</label>
+                            <select onchange="synth.setFilterType(this.value)">
+                                <option value="lowpass">Lowpass</option>
+                                <option value="highpass">Highpass</option>
+                                <option value="bandpass">Bandpass</option>
+                                <option value="notch">Notch</option>
+                            </select>
+                        </div>
+                        <div class="filter-params">
+                            <div>
+                                <label>Cutoff</label>
+                                <input type="range" min="20" max="20000" step="1" value="20000" 
+                                       class="filter-slider" oninput="synth.setFilterCutoff(this.value); this.nextElementSibling.textContent = Math.round(this.value) + 'Hz'">
+                                <span class="value-display">20000Hz</span>
+                            </div>
+                            <div>
+                                <label>Resonance</label>
+                                <input type="range" min="0" max="20" step="0.1" value="0" 
+                                       class="filter-slider" oninput="synth.setFilterResonance(this.value); this.nextElementSibling.textContent = this.value">
+                                <span class="value-display">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="effects-controls">
+                    <div class="effect-section">
+                        <h3>Delay</h3>
+                        <div>
+                            <label>Time</label>
+                            <select onchange="synth.setDelaySync(this.value)" id="delay-sync">
+                                <option value="free">Free</option>
+                                <!-- Standard note values -->
+                                <option value="4/1">4 Bars</option>
+                                <option value="2/1">2 Bars</option>
+                                <option value="1/1">1 Bar</option>
+                                <option value="1/2">1/2</option>
+                                <option value="1/4">1/4</option>
+                                <option value="1/8">1/8</option>
+                                <option value="1/16">1/16</option>
+                                <option value="1/32">1/32</option>
+                                
+                                <!-- Triplet values -->
+                                <option value="1/3">1/3 (Quarter Triplet)</option>
+                                <option value="1/6">1/6 (8th Triplet)</option>
+                                <option value="1/12">1/12 (16th Triplet)</option>
+                                <option value="1/24">1/24 (32nd Triplet)</option>
+                                
+                                <!-- Dotted values -->
+                                <option value="3/4">3/4 (Dotted Half)</option>
+                                <option value="3/8">3/8 (Dotted Quarter)</option>
+                                <option value="3/16">3/16 (Dotted 8th)</option>
+                                <option value="3/32">3/32 (Dotted 16th)</option>
+                                
+                                <!-- Unusual divisions -->
+                                <option value="1/5">1/5 (Quintuplet Quarter)</option>
+                                <option value="1/10">1/10 (Quintuplet 8th)</option>
+                                <option value="1/7">1/7 (Septuplet Quarter)</option>
+                                <option value="1/14">1/14 (Septuplet 8th)</option>
+                                <option value="1/9">1/9 (9-tuplet)</option>
+                                <option value="1/11">1/11 (11-tuplet)</option>
+                            </select>
+                            <input type="range" min="0" max="1000" value="300" 
+                                   onchange="synth.setDelayTime(this.value)" 
+                                   id="delay-time">
+                            <span class="value-display">300ms</span>
+                        </div>
+                        <div>
+                            <label>Feedback</label>
+                            <input type="range" min="0" max="0.9" step="0.01" value="0.4"
+                                   class="effect-slider" onchange="synth.setDelayFeedback(this.value)">
+                        </div>
+                        <div>
+                            <label>Mix</label>
+                            <input type="range" min="0" max="1" step="0.01" value="0"
+                                   class="effect-slider" onchange="synth.setDelayMix(this.value)">
+                        </div>
+                    </div>
+                    <div class="effect-section">
+                        <h3>Reverb</h3>
+                        <div>
+                            <label>Mix</label>
+                            <input type="range" min="0" max="1" step="0.01" value="0"
+                                   class="effect-slider" onchange="synth.setReverbMix(this.value)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right panel: Arpeggiator -->
+            <div class="control-panel arp-panel">
+                <h2>Arpeggiator</h2>
+                <div class="arp-controls">
+                    <div class="arp-row">
+                        <div>
+                            <label>Rate</label>
+                            <input type="range" min="50" max="500" step="10" value="200"
+                                   class="arp-slider" onchange="synth.setArpRate(this.value)">
+                            <span class="value-display">200ms</span>
+                        </div>
+                        <div>
+                            <label>Gate Time</label>
+                            <input type="range" min="0.1" max="1" step="0.1" value="0.8"
+                                   class="arp-slider" onchange="synth.setArpGateTime(this.value)">
+                            <span class="value-display">0.8</span>
+                        </div>
+                    </div>
+                    <div class="arp-row">
+                        <div>
+                            <label>Mode</label>
+                            <select onchange="synth.setArpMode(this.value)">
+                                <option value="up">Up</option>
+                                <option value="down">Down</option>
+                                <option value="upDown">Up & Down</option>
+                                <option value="random">Random</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Octave Span</label>
+                            <input type="range" min="1" max="4" step="1" value="1"
+                                   class="arp-slider" onchange="synth.setArpOctaveSpan(this.value)">
+                            <span class="value-display">1</span>
+                        </div>
+                    </div>
+                    <div class="arp-buttons">
+                        <button onclick="synth.toggleArpeggiator()" id="arp-toggle">Enable Arpeggiator</button>
+                        <button onclick="synth.toggleArpFreeze()" id="arp-freeze">Freeze Pattern</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sequencer-panel">
+            <div class="sequencer-controls">
+                <div class="transport-controls">
+                    <button id="seq-play" onclick="synth.toggleSequencer()">Play</button>
+                    <button id="reset-audio" onclick="synth.resetAudio()" class="danger-btn">Reset Audio</button>
+                    <div class="tempo-control">
+                        <label>Tempo</label>
+                        <input type="number" min="30" max="300" value="120" 
+                               onchange="synth.setSequencerTempo(this.value)">
+                        <span>BPM</span>
+                    </div>
+                </div>
+                <div class="sequencer-settings">
+                    <select onchange="synth.setSequencerDivision(this.value)">
+                        <option value="4">1/4</option>
+                        <option value="8">1/8</option>
+                        <option value="16" selected>1/16</option>
+                        <option value="32">1/32</option>
+                    </select>
+                    <div class="gate-control">
+                        <label>Gate Length</label>
+                        <input type="range" min="0.1" max="1" step="0.1" value="0.5" 
+                               onchange="synth.setSequencerGate(this.value)"
+                               oninput="this.nextElementSibling.textContent = Math.round(this.value * 100) + '%'">
+                        <span class="value-display">50%</span>
+                    </div>
+                    <div class="length-control">
+                        <label>Length</label>
+                        <select onchange="synth.setSequencerLength(this.value)">
+                            <option value="16">16 Steps</option>
+                            <option value="32">32 Steps</option>
+                            <option value="48">48 Steps</option>
+                            <option value="64" selected>64 Steps</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="sequencer-grid">
+                <!-- Grid will be generated by JavaScript -->
+            </div>
+            <div class="velocity-container">
+                <div class="velocity-controls">
+                    <!-- Velocity sliders will be generated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <div id="keyboard">
+            <!-- Keyboard will be added dynamically via JavaScript -->
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/synth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/effects.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/arpeggiator.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/lfo.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/sequencer.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/keyboard.js') }}"></script>
+</body>
+</html> 

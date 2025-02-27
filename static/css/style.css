@@ -1,0 +1,852 @@
+body {
+    margin: 0;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    background-color: #1a1a1a;
+    color: #ffffff;
+}
+
+#synth-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #2a2a2a;
+    border-radius: 10px;
+}
+
+h1 {
+    text-align: center;
+    color: #00ff00;
+}
+
+#controls {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr; /* Left panel wider, middle and right panels narrower */
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.control-panel {
+    background-color: #3a3a3a;
+    border-radius: 5px;
+    padding: 20px;
+}
+
+.control-panel h2 {
+    color: #00ff00;
+    margin: 0 0 15px 0;
+    font-size: 1.2em;
+}
+
+.control-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+/* Synth controls */
+.synth-controls .control-group {
+    margin: 0;
+    padding: 0;
+    background: none;
+}
+
+.adsr-controls {
+    margin-top: 20px;
+}
+
+.adsr-sliders {
+    display: flex;
+    gap: 15px;
+    justify-content: space-between;
+}
+
+.adsr-slider {
+    width: 60px;
+    height: 120px;
+    writing-mode: bt-lr;
+    -webkit-appearance: slider-vertical;
+}
+
+/* Effects panel */
+.effects-controls {
+    display: flex;
+    gap: 15px;
+}
+
+.effect-section {
+    flex: 1;
+    background-color: #444;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.effect-section h3 {
+    margin: 0 0 10px 0;
+    color: #00ff00;
+    font-size: 1em;
+}
+
+/* Arpeggiator panel */
+.arp-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.arp-row {
+    display: flex;
+    gap: 15px;
+}
+
+.arp-row > div {
+    flex: 1;
+}
+
+.arp-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+/* Common control styles */
+.control-group label,
+.effect-section label,
+.arp-controls label {
+    display: block;
+    margin-bottom: 5px;
+    color: #fff;
+}
+
+input[type="range"] {
+    width: 100%;
+}
+
+select {
+    width: 100%;
+    padding: 5px;
+    background-color: #4a4a4a;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+}
+
+/* Update existing button styles */
+button {
+    padding: 8px 15px;
+    background-color: #4a4a4a;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #5a5a5a;
+}
+
+#arp-toggle.active {
+    background-color: #00aa00;
+}
+
+#arp-freeze.active {
+    background-color: #aa0000;
+}
+
+#keyboard {
+    position: relative;
+    height: 200px;
+    margin-top: 30px;
+    user-select: none;
+    padding: 0;
+    background-color: #222;
+    border-radius: 8px;
+    overflow: hidden;
+    /* Set fixed width to ensure consistent sizing */
+    width: 100%;
+    max-width: 1160px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Reset keyboard containers */
+.white-keys, .black-keys {
+    position: relative;
+    height: 100%;
+    width: 100%;
+}
+
+.black-keys {
+    position: absolute;
+    height: 60%;
+    top: 0;
+    left: 0;
+    right: 0;
+    pointer-events: none;
+}
+
+/* Base key styles */
+.key {
+    position: absolute;
+    border: 1px solid #000;
+    border-radius: 0 0 4px 4px;
+    cursor: pointer;
+    pointer-events: auto;
+    transition: background-color 0.1s;
+    box-sizing: border-box;
+}
+
+.white-key {
+    background-color: #fff;
+    width: 4.76%; /* 100% / 21 keys */
+    height: 100%;
+    z-index: 1;
+}
+
+.black-key {
+    background-color: #000;
+    width: 3%;
+    height: 100%;
+    z-index: 2;
+    pointer-events: auto;
+}
+
+/* Position white keys precisely */
+.white-key[data-note="C"][data-octave="4"] { left: 0%; }
+.white-key[data-note="D"][data-octave="4"] { left: 4.76%; }
+.white-key[data-note="E"][data-octave="4"] { left: 9.52%; }
+.white-key[data-note="F"][data-octave="4"] { left: 14.28%; }
+.white-key[data-note="G"][data-octave="4"] { left: 19.04%; }
+.white-key[data-note="A"][data-octave="4"] { left: 23.8%; }
+.white-key[data-note="B"][data-octave="4"] { left: 28.56%; }
+
+.white-key[data-note="C"][data-octave="5"] { left: 33.32%; }
+.white-key[data-note="D"][data-octave="5"] { left: 38.08%; }
+.white-key[data-note="E"][data-octave="5"] { left: 42.84%; }
+.white-key[data-note="F"][data-octave="5"] { left: 47.6%; }
+.white-key[data-note="G"][data-octave="5"] { left: 52.36%; }
+.white-key[data-note="A"][data-octave="5"] { left: 57.12%; }
+.white-key[data-note="B"][data-octave="5"] { left: 61.88%; }
+
+.white-key[data-note="C"][data-octave="6"] { left: 66.64%; }
+.white-key[data-note="D"][data-octave="6"] { left: 71.4%; }
+.white-key[data-note="E"][data-octave="6"] { left: 76.16%; }
+.white-key[data-note="F"][data-octave="6"] { left: 80.92%; }
+.white-key[data-note="G"][data-octave="6"] { left: 85.68%; }
+.white-key[data-note="A"][data-octave="6"] { left: 90.44%; }
+.white-key[data-note="B"][data-octave="6"] { left: 95.2%; }
+
+/* Position black keys precisely */
+.black-key[data-note="C#"][data-octave="4"] { left: 3.26%; }
+.black-key[data-note="D#"][data-octave="4"] { left: 8.02%; }
+.black-key[data-note="F#"][data-octave="4"] { left: 17.54%; }
+.black-key[data-note="G#"][data-octave="4"] { left: 22.3%; }
+.black-key[data-note="A#"][data-octave="4"] { left: 27.06%; }
+
+.black-key[data-note="C#"][data-octave="5"] { left: 36.58%; }
+.black-key[data-note="D#"][data-octave="5"] { left: 41.34%; }
+.black-key[data-note="F#"][data-octave="5"] { left: 50.86%; }
+.black-key[data-note="G#"][data-octave="5"] { left: 55.62%; }
+.black-key[data-note="A#"][data-octave="5"] { left: 60.38%; }
+
+.black-key[data-note="C#"][data-octave="6"] { left: 69.9%; }
+.black-key[data-note="D#"][data-octave="6"] { left: 74.66%; }
+.black-key[data-note="F#"][data-octave="6"] { left: 84.18%; }
+.black-key[data-note="G#"][data-octave="6"] { left: 88.94%; }
+.black-key[data-note="A#"][data-octave="6"] { left: 93.7%; }
+
+/* Hover and active states */
+.white-key:hover {
+    background-color: #f0f0f0;
+}
+
+.black-key:hover {
+    background-color: #222;
+}
+
+.white-key:active,
+.white-key.active {
+    background-color: #e0e0e0;
+}
+
+.black-key:active,
+.black-key.active {
+    background-color: #333;
+}
+
+#octave-display {
+    display: inline-block;
+    min-width: 30px;
+    text-align: center;
+    font-size: 1.2em;
+    color: #00ff00;
+}
+
+/* Add to the existing CSS */
+.filter-controls {
+    margin-top: 20px;
+}
+
+.filter-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background-color: #444;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.filter-settings > div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.filter-settings label {
+    min-width: 80px;
+}
+
+.filter-slider {
+    flex: 1;
+}
+
+/* LFO controls styles */
+.lfo-controls {
+    margin-top: 20px;
+}
+
+.lfo-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.lfo-section {
+    background-color: #444;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.lfo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.lfo-header h3 {
+    margin: 0;
+    color: #00ff00;
+    font-size: 1em;
+}
+
+.lfo-params {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.lfo-params > div {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.lfo-toggle {
+    min-width: 80px;
+    padding: 8px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+    border: none;
+    border-radius: 4px;
+    background-color: #4a4a4a;
+    color: white;
+    transition: background-color 0.2s;
+}
+
+.lfo-toggle:hover {
+    background-color: #5a5a5a;
+}
+
+.lfo-toggle.active {
+    background-color: #00aa00;
+}
+
+.lfo-toggle.active:hover {
+    background-color: #00cc00;
+}
+
+/* Filter styles */
+.filter-section {
+    background-color: #444;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+.filter-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.filter-type {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.filter-type label {
+    min-width: 60px;
+}
+
+.filter-params {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.filter-params > div {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.value-display {
+    font-size: 0.9em;
+    color: #00ff00;
+    min-width: 60px;
+    text-align: right;
+}
+
+/* Sequencer styles */
+.sequencer-panel {
+    background-color: #2a2a2a;
+    border-radius: 5px;
+    padding: 15px;
+    margin: 20px auto; /* Center align and consistent margins */
+    width: calc(100% - 40px); /* Account for container padding */
+    max-width: 1160px; /* Match the keyboard max-width */
+    box-sizing: border-box;
+}
+
+.sequencer-controls {
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 15px;
+    background-color: #3a3a3a;
+    border-radius: 5px;
+    gap: 20px;
+}
+
+.transport-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap; /* Allow wrapping */
+    min-width: 300px; /* Ensure minimum width */
+}
+
+.tempo-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 140px; /* Slightly reduced to prevent overlap */
+}
+
+.tempo-control input[type="number"] {
+    width: 60px;
+    padding: 5px;
+    background-color: #4a4a4a;
+    border: none;
+    border-radius: 3px;
+    color: #fff;
+}
+
+.sequencer-settings {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap; /* Allow wrapping */
+    flex: 1; /* Take remaining space */
+}
+
+/* Adjust the division selector */
+.sequencer-settings > select {
+    min-width: 80px;
+    max-width: 100px;
+}
+
+.sequencer-grid {
+    display: grid;
+    grid-template-columns: repeat(32, 1fr); /* Show more steps at once */
+    gap: 3px; /* Slightly reduce gap to fit more steps */
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #3a3a3a;
+    border-radius: 5px;
+}
+
+.step-button {
+    aspect-ratio: 1;
+    border: none;
+    border-radius: 3px;
+    background-color: #4a4a4a;
+    cursor: pointer;
+    transition: all 0.1s ease-out;
+    color: #fff;
+    font-size: 0.8em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    min-width: 24px;
+    min-height: 24px;
+    user-select: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.step-button.active {
+    background-color: #00aa00;
+}
+
+.step-button.current {
+    border: 2px solid #00ff00;
+}
+
+.step-button.dragging {
+    background-color: #00cc00;
+    transform: scale(1.1);
+    z-index: 1;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.step-button.note-changing {
+    animation: noteChange 0.1s ease-out;
+}
+
+@keyframes noteChange {
+    0% { transform: scale(1.1); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1.1); }
+}
+
+/* First beat of each 4-step group */
+.step-button[data-step="0"],
+.step-button[data-step="4"],
+.step-button[data-step="8"],
+.step-button[data-step="12"],
+.step-button[data-step="16"],
+.step-button[data-step="20"],
+.step-button[data-step="24"],
+.step-button[data-step="28"],
+.step-button[data-step="32"],
+.step-button[data-step="36"],
+.step-button[data-step="40"],
+.step-button[data-step="44"],
+.step-button[data-step="48"],
+.step-button[data-step="52"],
+.step-button[data-step="56"],
+.step-button[data-step="60"] {
+    border-left: 2px solid #666;
+    background-color: #454545;
+}
+
+/* First beat of each 16-step bar */
+.step-button[data-step="0"],
+.step-button[data-step="16"],
+.step-button[data-step="32"],
+.step-button[data-step="48"] {
+    border-left: 2px solid #888;
+    background-color: #505050;
+}
+
+.velocity-controls {
+    display: grid;
+    grid-template-columns: repeat(32, 1fr); /* Match sequencer grid */
+    gap: 3px;
+    padding: 10px;
+    background-color: #3a3a3a;
+    border-radius: 5px;
+    overflow-x: auto; /* Allow horizontal scrolling if needed */
+}
+
+.velocity-slider {
+    width: 100%;
+    height: 40px; /* Make sliders shorter */
+    writing-mode: bt-lr;
+    -webkit-appearance: slider-vertical;
+    margin: 0;
+    padding: 0;
+}
+
+/* Add a container for velocity controls to allow scrolling */
+.velocity-container {
+    overflow-x: auto;
+    margin-bottom: 15px;
+    background-color: #3a3a3a;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+.toggle-btn.active {
+    background-color: #00aa00;
+}
+
+#seq-play.playing {
+    background-color: #00aa00;
+}
+
+/* Note selector styles */
+.note-selector-modal {
+    position: absolute;
+    background-color: #2a2a2a;
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.note-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.note-button {
+    padding: 8px;
+    background-color: #4a4a4a;
+    border: none;
+    border-radius: 3px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.note-button:hover {
+    background-color: #5a5a5a;
+}
+
+.gate-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 180px; /* Slightly reduced */
+    max-width: 300px; /* Add maximum width */
+    flex: 1;
+}
+
+.gate-control label {
+    min-width: 60px;
+    color: #fff;
+    white-space: nowrap; /* Prevent label from wrapping */
+}
+
+.gate-control input[type="range"] {
+    flex: 1;
+    min-width: 100px; /* Ensure slider has enough width */
+}
+
+.length-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 180px; /* Slightly reduced */
+    max-width: 250px; /* Add maximum width */
+}
+
+.length-control select {
+    flex: 1;
+    min-width: 120px; /* Ensure dropdown is wide enough */
+    padding: 8px;
+}
+
+.length-control label {
+    min-width: 60px;
+    color: #fff;
+    white-space: nowrap; /* Prevent label from wrapping */
+}
+
+.danger-btn {
+    background-color: #aa0000;
+    color: white;
+}
+
+.danger-btn:hover {
+    background-color: #cc0000;
+}
+
+.step-button.selected {
+    border: 2px solid #ffff00;
+}
+
+.lfo-rate-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.lfo-rate-control select {
+    width: auto;
+    flex: 0 0 auto;
+}
+
+.lfo-rate-control input[type="range"] {
+    flex: 1;
+}
+
+.lfo-rate-control .value-display {
+    min-width: 40px;
+    text-align: right;
+}
+
+/* Polyphony control */
+#polyphony-control {
+    width: 150px;
+}
+
+#polyphony-display {
+    min-width: 30px;
+    display: inline-block;
+    text-align: center;
+}
+
+/* Make sure the controls have some breathing room */
+.control-group {
+    margin-bottom: 15px;
+}
+
+/* Mobile and responsive styles */
+@media (max-width: 1200px) {
+    #synth-container {
+        padding: 10px;
+    }
+    
+    #controls {
+        grid-template-columns: 1fr; /* Stack all panels vertically on smaller screens */
+        gap: 15px;
+    }
+    
+    .control-panel {
+        padding: 15px;
+    }
+    
+    /* Adjust size of keyboard for better touch interaction */
+    #keyboard {
+        height: 150px;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    h1 {
+        font-size: 1.5rem;
+    }
+    
+    .control-panel h2 {
+        font-size: 1.1rem;
+    }
+    
+    /* Adjust the sequencer grid for smaller screens */
+    .sequencer-grid {
+        grid-template-columns: repeat(16, 1fr); /* Show fewer steps at once */
+        overflow-x: auto; /* Allow horizontal scrolling */
+    }
+    
+    .velocity-controls {
+        grid-template-columns: repeat(16, 1fr);
+    }
+    
+    /* Make the sequencer controls stack on mobile */
+    .sequencer-controls {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .transport-controls {
+        margin-bottom: 10px;
+    }
+    
+    /* Increase size of buttons and controls for touch */
+    button, 
+    select,
+    input[type="range"] {
+        min-height: 36px;
+        font-size: 16px; /* Prevents iOS zoom on focus */
+    }
+    
+    /* Adjust ADSR sliders to horizontal on mobile */
+    .adsr-sliders {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .adsr-slider {
+        width: 100%;
+        height: 30px;
+        writing-mode: initial; /* Reset to horizontal */
+        -webkit-appearance: slider-horizontal;
+    }
+    
+    /* Make keyboard more touch-friendly */
+    .white-key {
+        border-width: 2px;
+    }
+    
+    .black-key {
+        border-width: 2px;
+    }
+}
+
+/* Prevent text selection and handle touch events better */
+* {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+}
+
+/* Fix for iOS audio context */
+html {
+    height: 100%;
+    overscroll-behavior: none;
+}
+
+/* PWA/Full screen mode improvements */
+@media (display-mode: standalone) {
+    body {
+        padding: 0;
+    }
+    
+    #synth-container {
+        max-width: 100%;
+        min-height: 100vh;
+        margin: 0;
+        border-radius: 0;
+    }
+}
+
+/* Add spacing between buttons in transport controls */
+.transport-controls button {
+    margin-right: 10px;
+}
+
+/* Ensure consistent button sizes */
+.transport-controls button,
+.sequencer-settings button {
+    min-width: 80px;
+    padding: 8px 12px;
+}
+
+/* Make sure labels don't shrink */
+.gate-control label,
+.length-control label,
+.tempo-control label {
+    flex-shrink: 0;
+    white-space: nowrap;
+}

@@ -1,0 +1,4 @@
+Flask==3.0.0
+numpy==1.24.3
+python-rtmidi==1.5.0
+sounddevice==0.4.6 
